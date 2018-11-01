@@ -195,7 +195,7 @@ bool copyData(char* file_read_name, char* file_write_name)
 
   data[fsize] = 0;
 
-  chdir("Daemon-master-Kevlia/");
+  chdir("Daemon-Kevlia-master/");
   f_write = fopen(file_write_name, "a");   //open total.log to write 
   if (f_write == NULL)
   {
@@ -223,7 +223,7 @@ void start()
   FILE* fp;
   
   chdir(getenv("HOME"));
-  if ((fp = fopen("Daemon-master-Kevlia/config.txt", "r")) == NULL)
+  if ((fp = fopen("Daemon-Kevlia-master/config.txt", "r")) == NULL)
   {
       syslog(LOG_ERR, "Failed to open configuration file, errno = %d\n", errno);
       exit(1);
@@ -235,7 +235,7 @@ void start()
   //open directory
   DIR *d;
   struct dirent *dir;
-  d = opendir("Daemon-master-Kevlia/folder1");
+  d = opendir("Daemon-Kevlia-master/folder1");
   if (d) 
   {
     syslog(LOG_INFO, "directory ./folder1 was opened\n");            
@@ -245,7 +245,7 @@ void start()
       { 
         if (isLogFile(dir->d_name, "log"))
         {   	
-	  strcpy(full_name, "Daemon-master-Kevlia/folder1/");
+	  strcpy(full_name, "Daemon-Kevlia-master/folder1/");
    	  strcat(full_name, dir->d_name);
 	  copyData(full_name, total_file_name);
           chdir(getenv("HOME"));
