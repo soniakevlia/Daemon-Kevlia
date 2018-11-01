@@ -1,1 +1,1 @@
-folder2/total.log /home/bi/Downloads/Daemon-master/config.txt
+/folder2/total.log /config.txt

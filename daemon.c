@@ -11,12 +11,12 @@
 #include <errno.h>
 #include <dirent.h>
 #include <string.h>
+char MAIN_PATH[255];
 
 void sig_handler(int signo)
 {
   if(signo == SIGTERM)
   {
-    chdir(getenv("HOME"));
     syslog(LOG_INFO, "SIGTERM has been caught! Exiting...");
     if(remove("run/daemon.pid") != 0)
     {
@@ -195,8 +195,13 @@ bool copyData(char* file_read_name, char* file_write_name)
 
   data[fsize] = 0;
 
-  chdir("Daemon-Kevlia-master/");
-  f_write = fopen(file_write_name, "a");   //open total.log to write 
+  //chdir(MAIN_PATH);
+  char path[255];
+  strcpy(path, MAIN_PATH);
+
+  strcat(path,file_write_name);
+
+  f_write = fopen(path, "a");   //open total.log to write 
   if (f_write == NULL)
   {
     syslog(LOG_ERR, "Failed to open the file %s", file_write_name);
@@ -222,10 +227,14 @@ void start()
   //read configuration file
   FILE* fp;
   
-  chdir(getenv("HOME"));
-  if ((fp = fopen("Daemon-Kevlia-master/config.txt", "r")) == NULL)
+  //chdir(MAIN_PATH); 
+  char path[255];
+   strcpy(path, MAIN_PATH);
+   strcat(path,"/config.txt");
+  if ((fp = fopen(path, "r")) == NULL)
   {
-      syslog(LOG_ERR, "Failed to open configuration file, errno = %d\n", errno);
+      printf("%s\n", path);
+      syslog(LOG_ERR, "Failed to open configuration file, errno = %d,", errno);
       exit(1);
   }
   fscanf(fp, "%s", total_file_name);
@@ -235,7 +244,7 @@ void start()
   //open directory
   DIR *d;
   struct dirent *dir;
-  d = opendir("Daemon-Kevlia-master/folder1");
+  d = opendir("Daemon-master-Kevlia/folder1");
   if (d) 
   {
     syslog(LOG_INFO, "directory ./folder1 was opened\n");            
@@ -245,11 +254,18 @@ void start()
       { 
         if (isLogFile(dir->d_name, "log"))
         {   	
-	  strcpy(full_name, "Daemon-Kevlia-master/folder1/");
+	  strcpy(full_name, "/folder1/");
    	  strcat(full_name, dir->d_name);
-	  copyData(full_name, total_file_name);
-          chdir(getenv("HOME"));
-          status = remove(full_name);  //delete file
+
+          char path1[255];
+          strcpy(path1, MAIN_PATH);
+          strcat(path1, full_name);
+
+	  copyData(path1, total_file_name);
+          //chdir(MAIN_PATH);
+
+          
+          status = remove(path1);  //delete file
 	  if (status == 0)
             syslog(LOG_INFO, "file %s was deleted succesfully\n", full_name);
 	  else
@@ -270,14 +286,15 @@ int findCurProc()
 {
   FILE* pid_fp;
   pid_t pid;
-  
   chdir(getenv("HOME"));
   if((pid_fp = fopen("run/daemon.pid", "r")) == NULL)
   {
+    syslog(LOG_INFO, "Failed to open pid file");
     return -1;
   }
   if(fscanf(pid_fp, "%d\n", &pid) < 0)
   {  
+    syslog(LOG_INFO, "was no pid file");
     fclose(pid_fp);
     return -1;
   }
@@ -285,6 +302,7 @@ int findCurProc()
   fclose(pid_fp);
   return pid;
 }
+
 
 void stopDaemon(pid_t pid)
 {
@@ -301,7 +319,8 @@ int main(int argc, char* argv[])
 {
   bool isRunning;
   int count = 0;
-
+  getcwd(MAIN_PATH, 255);
+  syslog(LOG_INFO, "main path = %s", MAIN_PATH);
   if(argc == 1) 
   {
     syslog(LOG_INFO, "Command line has no additional arguments\n");
